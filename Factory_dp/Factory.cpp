@@ -1,64 +1,34 @@
-#include <iostream>
-#include <memory>
+#include "Factory.hpp"
 
-enum class DrinkType {
-    coffee,
-    tea
-};
+template <Types T>
+Material<T>::Material(int m1, float m2, char m3) requires (T == Types::type1) {
+    member1 = m1;
+    member2 = m2;
+    member3 = m3;
+    std::cout << "Constructor called for object of type1" << std::endl;
+}
 
-class IDrink {
-public:
-    IDrink(){
-        std::cout << "Base" << std::endl;
+template <Types T>
+Material<T>::Material(int m1, float m2, char m3) requires (T == Types::type2) {
+    member1 = m1;
+    member2 = m2;
+    member3 = m3;
+    std::cout << "Constructor called for object of type2" << std::endl;
+}
+
+template <Types T>
+void Material<T>::show_info() const {
+    std::cout << "Int is: " << member1
+              << ", Float is: " << member2
+              << ", Char is: " << member3 << std::endl;
+}
+
+std::unique_ptr<IMaterials> Factory::create(Types tp, int m1, float m2, char m3) {
+    switch (tp) {
+        case Types::type1:
+            return std::make_unique<Material<Types::type1>>(m1, m2, m3);
+        case Types::type2:
+            return std::make_unique<Material<Types::type2>>(m1, m2, m3);
     }
-    virtual ~IDrink() = 0;
-    virtual void vf() = 0;
-};
-
-IDrink::~IDrink() {}
-
-template <DrinkType T>
-class Drink : public IDrink {
-public:
-    Drink(float v) : volume(v) {
-        if constexpr (T == DrinkType::coffee)
-            std::cout << "Coffee created" << std::endl;
-        else if constexpr (T == DrinkType::tea)
-            std::cout << "Tea created" << std::endl;
-    }
-
-    void vf() override {
-        if constexpr (T == DrinkType::coffee)
-            std::cout << "Coffee action\n";
-        else
-            std::cout << "Tea action\n";
-    }
-
-private:
-    float volume;
-};
-
-class Factory {
-public:
-    static std::unique_ptr<IDrink> create(DrinkType type, float volume) {
-        switch(type) {
-            case DrinkType::coffee:
-                return std::make_unique<Drink<DrinkType::coffee>>(volume);
-            case DrinkType::tea:
-                return std::make_unique<Drink<DrinkType::tea>>(volume);
-        }
-        return nullptr;
-    }
-};
-
-int main() {
-    // Compile-time creation
-    Drink<DrinkType::coffee> cofa(10.5f);
-    Drink<DrinkType::tea> chay(20.5f);
-
-    // Runtime creation via factory
-    auto drink = Factory::create(DrinkType::coffee, 80.75f);
-    drink->vf();
-
-    return 0;
+    return nullptr;
 }
