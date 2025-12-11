@@ -1,4 +1,5 @@
-#pragma once 
+#pragma once
+#include <stdexcept>
 
 template <typename T>
 class List {
@@ -9,83 +10,94 @@ private:
 
         node(const T& val) : val(val), next(nullptr) {}
     };
-    node* head = nullptr;
-    size_t size = 0;
-public:
-    list() {
 
+    node* head = nullptr;
+    size_t sz = 0;
+
+public:
+    List() {}
+
+    ~List() {
+        clear();
     }
 
-    ~list() {
-        clear();
+    size_t size() const {
+        return sz;
     }
 
     void insert(const T& val) {
         node* new_node = new node(val);
-        if(size == 0) {
+        if (sz == 0) {
             head = new_node;
-        }
-        else {
+        } else {
             node* temp = head;
-            while(temp->next) {
+            while (temp->next) {
                 temp = temp->next;
             }
             temp->next = new_node;
         }
-        ++size;
+        ++sz;
     }
 
     void remove(size_t k = 0) {
-        if(k >= size) {
+        if (k >= sz) {
             throw std::runtime_error("Out of range");
         }
-        if(k == 0) {
+
+        if (k == 0) {
             node* to_delete = head;
             head = head->next;
             delete to_delete;
         }
-        else{
+        else {
             node* temp = head;
-            while(k!=1) {
+            for (size_t i = 0; i < k - 1; ++i) {
                 temp = temp->next;
-                --k;
             }
             node* to_delete = temp->next;
-            temp->next = temp->next->next;
+            temp->next = to_delete->next;
             delete to_delete;
         }
-        --size;
+        --sz;
     }
 
     void clear() {
-        while(head) {
+        while (head) {
             node* temp = head;
             head = head->next;
             delete temp;
         }
-        size = 0;
+        sz = 0;
     }
-    
-    T& operator[](size_t k = 0) {
-        if(k >= size) {
+
+    T& operator[](size_t k) {
+        if (k >= sz) {
             throw std::runtime_error("Out of range index.");
         }
-        if(k == 0) {
-            return head->val;
+
+        node* temp = head;
+        for (size_t i = 0; i < k; ++i) {
+            temp = temp->next;
         }
-        else {
-            node* temp = head;
-            while(k > 0) {
-                temp = temp->next;
-                --k;
-            }
-            return temp->val;
+        return temp->val;
+    }
+
+    const T& operator[](size_t k) const {
+        if (k >= sz) {
+            throw std::runtime_error("Out of range index.");
         }
+
+        node* temp = head;
+        for (size_t i = 0; i < k; ++i) {
+            temp = temp->next;
+        }
+        return temp->val;
     }
 };
 
 template <typename T>
 class IStack {
+public:
     virtual ~IStack() = default;
 
     virtual void push(const T& val) = 0;
@@ -98,19 +110,24 @@ class IStack {
 template <typename T>
 class Stack : public IStack<T> {
 public:
-    ~Stack() {
-    }
+    ~Stack() {}
 
     void push(const T& val) {
         stack.insert(val);
     }
 
     void pop() {
-        stack.remove(stack.size()-1);
+        if (stack.size() == 0) {
+            throw std::runtime_error("Pop from empty stack");
+        }
+        stack.remove(stack.size() - 1);
     }
 
-    T& top() const { 
-        return stack[size()-1];
+    T& top() {
+        if (stack.size() == 0) {
+            throw std::runtime_error("Top from empty stack");
+        }
+        return stack[stack.size() - 1];
     }
 
 private:
